@@ -233,7 +233,9 @@ def splade_run(doc_ids: List[str], doc_texts: List[str],
             with torch.no_grad():
                 vecs = torch.log(1 + torch.relu(mod(**inp).logits))
             vecs = (vecs * inp["attention_mask"].unsqueeze(-1)).max(dim=1).values
-            rows.append(sp.csr_matrix(vecs.cpu().numpy()))
+            # scipy.sparse only supports float32/64.  SPLADE may run in fp16
+            # on CUDA, so cast back here.
+            rows.append(sp.csr_matrix(vecs.cpu().float().numpy()))
         return sp.vstack(rows)
 
     doc_vecs = _enc(doc_texts)

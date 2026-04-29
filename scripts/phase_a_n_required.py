@@ -30,9 +30,18 @@ def n_required(gap: float) -> int:
 
 
 def main() -> None:
+    canonical = FEEDBACK2_DIR / "nfcorpus_canonical.csv"
+    htc = NEXT_STAGE_DIR / "hybrid_test_comparison.csv"
+    if not canonical.exists():
+        raise FileNotFoundError(
+            f"Run scripts/phase_a_first_stage.py first; expected {canonical}")
+    if not htc.exists():
+        raise FileNotFoundError(
+            f"Run scripts/next_stage_paired_boot.py first; expected {htc}")
+
     nf = {r["Method"]: float(r["nDCG@10"])
-           for _, r in pd.read_csv(FEEDBACK2_DIR / "nfcorpus_canonical.csv").iterrows()}
-    hyb = pd.read_csv(NEXT_STAGE_DIR / "hybrid_test_comparison.csv")
+           for _, r in pd.read_csv(canonical).iterrows()}
+    hyb = pd.read_csv(htc)
     hybrid = float(hyb.loc[hyb["method"] == "Hybrid", "nDCG@10"].iloc[0])
     dense = float(hyb.loc[hyb["method"] == "Dense", "nDCG@10"].iloc[0])
     bm25 = float(hyb.loc[hyb["method"] == "BM25", "nDCG@10"].iloc[0])

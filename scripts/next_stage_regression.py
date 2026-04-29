@@ -136,7 +136,10 @@ def main() -> None:
 
     # ---- Stratifications (Tables 14, 15) --------------------------------
     def _strat(col: str, labels):
-        bins = pd.qcut(feats[col], 3, labels=labels)
+        # Rank-first qcut so ties in the gap distribution (many zeros) do
+        # not collapse the bin edges.  Equivalent to equal-sized tertiles.
+        ranked = feats[col].rank(method="first")
+        bins = pd.qcut(ranked, 3, labels=labels)
         out = []
         for lab in labels:
             sub = feats[bins == lab]
